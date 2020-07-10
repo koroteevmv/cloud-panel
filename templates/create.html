@@ -4,17 +4,23 @@
     <h2>Создание нового экземпляра</h2>
 
     <form method="POST">
+        <div class="form-group">
+        <label for="name"> Введите имя вирутальной машины </label>
+            <input type="text" class="form-control" name="name" id="name">
+        </div>
 
-        <label> Введите имя вирутальной машины:
-            <input type="text">
-        </label>
-
+        <div class="form-group">
         <label for="image">Выберите образ ОС: </label>
-        <select name="image" id="image">
+        <select name="image" id="image" class="form-control">
             {% for image in images %}
-                <option value="image">image</option>
+                <option value="{{ image }}">{{ image }}</option>
             {% endfor %}
         </select>
+        </div>
+
+        <div class="form-group">
+        <input type="submit" class="btn btn-success form-control" value="Создать">
+            </div>
 
     </form>
 

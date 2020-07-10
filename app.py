@@ -1,13 +1,21 @@
+import glob
 import os
 import subprocess
+from random import randint
 
-from flask import Flask, render_template, redirect
+from flask import Flask, render_template, redirect, request
 
 app = Flask(__name__)
 
 
-@app.route('/')
-def list_vms():
+image_folder = '/home/koroteev/Documents'
+low_port = 20000
+high_port = 30000
+user='koroteev'
+hostname='localhost'
+
+
+def get_list():
     vms = subprocess.check_output('vboxmanage list vms', shell=True).decode('utf-8').split('\n')[:-1]
     vms = [tuple(vm.split(' ')) for vm in vms]
     vms = [{'name': name[1:-1],
@@ -24,16 +32,29 @@ def list_vms():
         stream = os.popen(f'VBoxManage showvminfo {vm["id"]} | grep Rule | cut -d "=" -f 5')
         vm["port"] = stream.read().split(', ')[0][1:]
 
-    # return str(vms)
+    return vms
+
+
+@app.route('/')
+def list_vms():
+    vms = get_list()
     return render_template('vm_list.html',
-                           vms=vms, user='koroteev', hostname='localhost')
+                           vms=vms, user=user, hostname=hostname)
 
 
 @app.route('/launch/<string:id>')
 def launch(id):
-    port = 22002
+    port = 22003
 
-    subprocess.check_output(f'vboxmanage modifyvm {id} --natpf1 delete ssh-forwarding', shell=True)
+    vms = get_list()
+    occupied_ports = set([vm['port'] for vm in vms])
+    print(occupied_ports)
+
+    while True:
+        port = randint(low_port, high_port)
+        if port not in occupied_ports:
+            break
+    print(port)
     subprocess.check_output(f'vboxmanage modifyvm {id} --natpf1 "ssh-forwarding,tcp,,{port},,22"', shell=True)
     subprocess.check_output(f'vboxmanage startvm --type headless {id}', shell=True)
 
@@ -43,18 +64,31 @@ def launch(id):
 @app.route('/stop/<string:id>')
 def stop(id):
     subprocess.check_output(f'vboxmanage controlvm {id} poweroff', shell=True)
+    try:
+        subprocess.check_output(f'vboxmanage modifyvm {id} --natpf1 delete ssh-forwarding', shell=True)
+    except:
+        pass
     return redirect('/')
 
 
-@app.route('/create_vm/')
+@app.route('/create_vm/', methods=['POST', 'GET'])
 def create_vm():
-    images=[]
+    if request.method == 'POST':
+        print(dict(request.form))
+        filename = os.path.join(image_folder, request.form["image"])
+        subprocess.check_output(f'vboxmanage import {request.form["image"]} --vsys 0 --vmname {request.form["name"]}', shell=True)
+        subprocess.check_output(f'vboxmanage modifyvm {request.form["name"]} --nic1 nat', shell=True)
+
+        return redirect('/')
+
+    os.chdir(image_folder)
+    images = [file for file in glob.glob("*.ova")]
     return render_template('create.html', images=images)
 
 
 @app.route('/delete/<string:id>')
 def delete(id):
-    subprocess.check_output(f'vboxmanage unregistervm {id}', shell=True)
+    subprocess.check_output(f'vboxmanage unregistervm {id} --delete', shell=True)
     return redirect('/')
 
 

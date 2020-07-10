@@ -17,20 +17,40 @@
             <tr class='clickable-row'>
                 <td class="align-middle" scope="row">{{ vm.name }}</td>
                 <td class="align-middle">{{ vm.running }}</td>
-                <td class="align-middle">ssh -p {{ vm.port }} {{ user }}@{{ hostname }}</td>
+                <td class="align-middle">
+                    {% if vm.running %}
+                        <button onclick="copyToClipBoard('ssh -p {{ vm.port }} {{ user }}@{{ hostname }}')">Copy</button>
+                        <span id="{{ vm.id }}_connection_string">
+                            ssh -p {{ vm.port }} {{ user }}@{{ hostname }}
+                        </span>
+                    {% endif %}
+                </td>
                 <td class="align-middle">
                     {% if vm.running %}
                         <a class="btn btn-warning" href="/stop/{{ vm.id }}"> Остановить </a>
                     {% else %}
                         <a class="btn btn-success" href="/launch/{{ vm.id }}"> Запустить </a>
                     {% endif %}
-                        <a class="btn btn-danger" href="/delete/{{ vm.id }}"> Удалить </a>
+                    <a class="btn btn-danger" href="/delete/{{ vm.id }}"> Удалить </a>
                 </td>
             </tr>
         {% endfor %}
         </tbody>
 
     </table>
+
+    <script>
+
+        const copyToClipBoard = (str) =>
+        {
+            const el = document.createElement('textarea');
+            el.value = str;
+            document.body.appendChild(el);
+            el.select();
+            document.execCommand('copy');
+            document.body.removeChild(el);
+        };
+    </script>
 
 {% endblock %}
 
