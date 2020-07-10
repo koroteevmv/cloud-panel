@@ -1,0 +1,39 @@
+{% extends "main.html" %}
+{% block content %}
+
+    <h2>Список виртуальных машин</h2>
+
+    <table class="table table-striped table-bordered table-sm table-hover">
+        <thead class="thead-light">
+        <tr>
+            <th scope="col">Название</th>
+            <th scope="col">Статус</th>
+            <th scope="col">Команда подключения</th>
+            <th scope="col">Действия</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for vm in vms %}
+            <tr class='clickable-row'>
+                <td class="align-middle" scope="row">{{ vm.name }}</td>
+                <td class="align-middle">{{ vm.running }}</td>
+                <td class="align-middle">ssh -p {{ vm.port }} {{ user }}@{{ hostname }}</td>
+                <td class="align-middle">
+                    {% if vm.running %}
+                        <a class="btn btn-warning" href="/stop/{{ vm.id }}"> Остановить </a>
+                    {% else %}
+                        <a class="btn btn-success" href="/launch/{{ vm.id }}"> Запустить </a>
+                    {% endif %}
+                        <a class="btn btn-danger" href="/delete/{{ vm.id }}"> Удалить </a>
+                </td>
+            </tr>
+        {% endfor %}
+        </tbody>
+
+    </table>
+
+{% endblock %}
+
+{% block bottom_nav %}
+    <a href="/create_vm/" class="btn btn-primary">Создать</a>
+{% endblock %}

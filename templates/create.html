@@ -1,0 +1,21 @@
+{% extends "main.html" %}
+{% block content %}
+
+    <h2>Создание нового экземпляра</h2>
+
+    <form method="POST">
+
+        <label> Введите имя вирутальной машины:
+            <input type="text">
+        </label>
+
+        <label for="image">Выберите образ ОС: </label>
+        <select name="image" id="image">
+            {% for image in images %}
+                <option value="image">image</option>
+            {% endfor %}
+        </select>
+
+    </form>
+
+{% endblock %}
