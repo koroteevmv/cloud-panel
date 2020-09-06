@@ -3,12 +3,16 @@ import os
 import subprocess
 from random import randint
 
-from app import app
-from flask import render_template, request, redirect, url_for, flash, make_response, session
-# from flask_login import login_required, login_user,current_user, logout_user
-# from .models import User, Post, Category, Feedback, db
-# from .forms import ContactForm, LoginForm
-# from .utils import send_mail
+from flask import Flask, render_template, redirect, request
+
+app = Flask(__name__)
+
+
+image_folder = '/home/koroteev/Documents'
+low_port = 20000
+high_port = 30000
+user='koroteev'
+hostname='localhost'
 
 
 def get_list():
@@ -35,8 +39,7 @@ def get_list():
 def list_vms():
     vms = get_list()
     return render_template('vm_list.html',
-                           vms=vms, user=app.config['USER'],
-                           hostname=app.config['HOSTNAME'])
+                           vms=vms, user=user, hostname=hostname)
 
 
 @app.route('/launch/<string:id>')
@@ -48,7 +51,7 @@ def launch(id):
     print(occupied_ports)
 
     while True:
-        port = randint(app.config['LOW_PORT'], app.config['HIGH_PORT'])
+        port = randint(low_port, high_port)
         if port not in occupied_ports:
             break
     print(port)
@@ -72,13 +75,13 @@ def stop(id):
 def create_vm():
     if request.method == 'POST':
         print(dict(request.form))
-        filename = os.path.join(app.config['IMAGE_FOLDER'], request.form["image"])
+        filename = os.path.join(image_folder, request.form["image"])
         subprocess.check_output(f'vboxmanage import {request.form["image"]} --vsys 0 --vmname {request.form["name"]}', shell=True)
         subprocess.check_output(f'vboxmanage modifyvm {request.form["name"]} --nic1 nat', shell=True)
 
         return redirect('/')
 
-    os.chdir(app.config['IMAGE_FOLDER'])
+    os.chdir(image_folder)
     images = [file for file in glob.glob("*.ova")]
     return render_template('create.html', images=images)
 
@@ -87,3 +90,7 @@ def create_vm():
 def delete(id):
     subprocess.check_output(f'vboxmanage unregistervm {id} --delete', shell=True)
     return redirect('/')
+
+
+if __name__ == '__main__':
+    app.run(host='0.0.0.0', debug=True)
