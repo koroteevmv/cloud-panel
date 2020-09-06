@@ -55,8 +55,11 @@ def launch(id):
         if port not in occupied_ports:
             break
     print(port)
-    subprocess.check_output(f'vboxmanage modifyvm {id} --natpf1 "ssh-forwarding,tcp,,{port},,22"', shell=True)
-    subprocess.check_output(f'vboxmanage startvm --type headless {id}', shell=True)
+    try:
+        subprocess.check_output(f'vboxmanage modifyvm {id} --natpf1 "ssh-forwarding,tcp,,{port},,22"', shell=True)
+        subprocess.check_output(f'vboxmanage startvm --type headless {id}', shell=True)
+    except:
+        subprocess.check_output(f'vboxmanage modifyvm {id} --natpf1 delete ssh-forwarding', shell=True)
 
     return redirect('/')
 
