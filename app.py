@@ -3,7 +3,7 @@ import os
 import subprocess
 from random import randint
 
-from flask import Flask, render_template, redirect, request
+from flask import Flask, render_template, redirect, request, jsonify
 
 app = Flask(__name__)
 
@@ -81,6 +81,9 @@ def create_vm():
 
         return redirect('/')
 
+    if not os.path.isdir(image_folder):
+        return redirect('/settings/')
+
     os.chdir(image_folder)
     images = [file for file in glob.glob("*.ova")]
     return render_template('create.html', images=images)
@@ -91,6 +94,15 @@ def delete(id):
     subprocess.check_output(f'vboxmanage unregistervm {id} --delete', shell=True)
     return redirect('/')
 
+@app.route('/monitor/')
+def monitor():
+    import psutil
+    vms = [vm for vm in get_list()if vm['running']]
+    return jsonify(cpu=psutil.cpu_percent(),
+                   mem_per=psutil.virtual_memory().percent,
+                   mem_total=psutil.virtual_memory().total,
+                   running=len(vms), )
+
 
 if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=True)
+    app.run(host='0.0.0.0', debug=False)

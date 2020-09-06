@@ -18,6 +18,7 @@
 {#    <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">#}
 {#    <script src="{{ url_for('static', filename='main.js') }}"></script>#}
 </head>
+
 <body>
 
 <nav class="navbar navbar-dark bg-primary">
@@ -50,7 +51,34 @@
 {#            </li>#}
 {#        </ul>#}
 {#    </div>#}
+
+    <div class="container w-75"><div class="row align-items-center w-100">
+    <div class="col-sm">
+{#        <p>Использование памяти</p>#}
+        <div class="progress"  style="height: 2.2rem;">
+            <div class="progress-bar bg-success" id="mem_pb" role="progressbar" style="width: 75%" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100">
+                Память: 75%
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm">
+{#        <p>Использование процессора</p>#}
+        <div class="progress" style="height: 2.2rem;">
+            <div class="progress-bar bg-success" id="cpu_pb" role="progressbar" style="width: 75%" aria-valuenow="75" aria-valuemin="0" aria-valuemax="100">
+                CPU: 75%
+            </div>
+        </div>
+    </div>
+
+    <div class="col-sm">
+        <p class="mb-0">Запущенных машин: <a href="#" class="badge badge-success" id="running">0</a> </p>
+    </div>
+</div></div>
+
 </nav>
+
+
 
 <div class="container">
     {% block content %}{% endblock %}
@@ -68,6 +96,43 @@
     {% block footer %}{% endblock %}
 
 </div>
+
+
+<script>
+    let mem_pg = document.getElementById("mem_pb");
+    let cpu_pg = document.getElementById("cpu_pb");
+    let running = document.getElementById("running");
+
+    function get_params() {
+        fetch('/monitor/')
+            .then((response) => {
+                return response.json();
+            })
+            .then((data) => {
+                console.log(data);
+
+                mem_pg.style.width = data['mem_per'] + '%';
+                mem_pg.innerText = "Память: " + data['mem_per'] + '%';
+                if (data['mem_per'] > 90)
+                    mem_pg.className = "progress-bar bg-danger";
+                else if (data['mem_per'] > 50)
+                    mem_pg.className = "progress-bar bg-warning";
+
+                cpu_pg.style.width = Math.max(20, data['cpu']) + '%';
+                cpu_pg.innerText = "CPU: " + data['cpu'] + '%';
+                if (data['cpu'] > 90)
+                    mem_pg.className = "bar bar-danger";
+                else if (data['cpu'] > 50)
+                    mem_pg.className = "bar bar-warning";
+
+                running.innerText = data['running'];
+            });
+    }
+
+    get_params();
+    setInterval(get_params, 2000);
+
+</script>
 
 </body>
 </html>
