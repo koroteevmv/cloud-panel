@@ -3,10 +3,6 @@
 <head>
     <meta charset="UTF-8">
     <title>Локальное приватное облако</title>
-    <link rel="stylesheet"
-          href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
-          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
-          crossorigin="anonymous">
     <script src="https://code.jquery.com/jquery-3.2.1.min.js"
             crossorigin="anonymous"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/popper.js/1.12.9/umd/popper.min.js"
@@ -15,6 +11,10 @@
     <script src="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/js/bootstrap.min.js"
             integrity="sha384-JZR6Spejh4U02d8jOt6vLEHfe/JQGiRRSQQxSfFWpi1MquVdAyjUar5+76PVCmYl"
             crossorigin="anonymous"></script>
+    <link rel="stylesheet"
+          href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css"
+          integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+          crossorigin="anonymous">
 {#    <link rel="stylesheet" href="{{ url_for('static', filename='main.css') }}">#}
 {#    <script src="{{ url_for('static', filename='main.js') }}"></script>#}
 </head>
@@ -55,7 +55,8 @@
     <div class="container w-75"><div class="row align-items-center w-100">
     <div class="col-sm">
 {#        <p>Использование памяти</p>#}
-        <div class="progress"  style="height: 2.2rem;">
+        <div class="progress"  style="height: 2.1rem;"
+     data-toggle="popover" title="Использование памяти" data-content="And here's some amazing content. It's very engaging. Right?">
             <div class="progress-bar bg-success" id="mem_pb" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
                 RAM: 0%
             </div>
@@ -64,7 +65,7 @@
 
     <div class="col-sm">
 {#        <p>Использование процессора</p>#}
-        <div class="progress" style="height: 2.2rem;">
+        <div class="progress" style="height: 2.1rem;">
             <div class="progress-bar bg-success" id="cpu_pb" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
                 CPU: 0%
             </div>
@@ -73,15 +74,15 @@
 
     <div class="col-sm">
 {#        <p>Использование процессора</p>#}
-        <div class="progress" style="height: 2.2rem;">
+        <div class="progress" style="height: 2.1rem;">
             <div class="progress-bar bg-success" id="disk_pb" role="progressbar" style="width: 0%" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
                 Disk: 0%
             </div>
         </div>
     </div>
 
-    <div class="col-sm">
-        <p class="mb-0">Запущенных машин: <a href="#" class="badge badge-success" id="running">0</a> </p>
+    <div class="col-sm align-middle">
+       <h2 class="m-0 align-middle"><a href="/" class="badge badge-success" id="running">0</a></h2>
     </div>
 </div></div>
 

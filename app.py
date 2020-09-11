@@ -9,10 +9,10 @@ app = Flask(__name__)
 
 
 image_folder = '/home/koroteev/Documents'
-low_port = 20000
-high_port = 30000
-user = 'koroteev'
-hostname = 'localhost'
+low_port = 40000
+high_port = 50000
+user = 'user'
+hostname = '77.37.204.9'
 
 
 def get_list():
