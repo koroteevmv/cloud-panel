@@ -11,8 +11,8 @@ app = Flask(__name__)
 image_folder = '/home/koroteev/Documents'
 low_port = 20000
 high_port = 30000
-user='koroteev'
-hostname='localhost'
+user = 'koroteev'
+hostname = 'localhost'
 
 
 def get_list():
@@ -84,6 +84,8 @@ def create_vm():
 
         return redirect('/')
 
+    # TODO загрузка и скачивание образа
+
     if not os.path.isdir(image_folder):
         return redirect('/settings/')
 
@@ -101,10 +103,13 @@ def delete(id):
 def monitor():
     import psutil
     vms = [vm for vm in get_list()if vm['running']]
+    disk_per = psutil.disk_usage(image_folder)[-1]
     return jsonify(cpu=psutil.cpu_percent(),
                    mem_per=psutil.virtual_memory().percent,
                    mem_total=psutil.virtual_memory().total,
-                   running=len(vms), )
+                   running=len(vms),
+                   disk_per=disk_per
+                   )
 
 
 if __name__ == '__main__':
