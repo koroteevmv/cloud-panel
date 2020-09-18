@@ -8,7 +8,7 @@ from flask import Flask, render_template, redirect, request, jsonify
 app = Flask(__name__)
 
 
-image_folder = '/home/koroteev/Documents'
+image_folder = './images/'
 low_port = 40000
 high_port = 50000
 user = 'user'
@@ -77,9 +77,10 @@ def stop(id):
 @app.route('/create_vm/', methods=['POST', 'GET'])
 def create_vm():
     if request.method == 'POST':
-        print(dict(request.form))
-        filename = os.path.join(image_folder, request.form["image"])
-        subprocess.check_output(f'vboxmanage import {request.form["image"]} --vsys 0 --vmname {request.form["name"]}', shell=True)
+        # print(dict(request.form))
+        print(os.getcwd(), image_folder, request.form["image"])
+        filename = os.path.abspath(os.path.join(image_folder, request.form["image"]))
+        subprocess.check_output(f'vboxmanage import {filename} --vsys 0 --vmname {request.form["name"]}', shell=True)
         subprocess.check_output(f'vboxmanage modifyvm {request.form["name"]} --nic1 nat', shell=True)
 
         return redirect('/')
@@ -89,8 +90,8 @@ def create_vm():
     if not os.path.isdir(image_folder):
         return redirect('/settings/')
 
-    os.chdir(image_folder)
-    images = [file for file in glob.glob("*.ova")]
+    # os.chdir(image_folder)
+    images = [file for file in os.listdir(image_folder) if file.endswith('.ova')]
     return render_template('create.html', images=images)
 
 
@@ -103,7 +104,7 @@ def delete(id):
 def monitor():
     import psutil
     vms = [vm for vm in get_list()if vm['running']]
-    disk_per = psutil.disk_usage(image_folder)[-1]
+    disk_per = psutil.disk_usage("/")[-1]
     return jsonify(cpu=psutil.cpu_percent(),
                    mem_per=psutil.virtual_memory().percent,
                    mem_total=psutil.virtual_memory().total,
