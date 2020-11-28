@@ -2,6 +2,7 @@ import glob
 import os
 import subprocess
 from random import randint
+from functools import wraps
 
 from flask import Flask, render_template, redirect, request, jsonify
 
@@ -13,6 +14,7 @@ import msal
 import app_config
 
 app = Flask(__name__)
+
 app.config.from_object(app_config)
 Session(app)
 
@@ -132,17 +134,37 @@ def get_list():
     return vms
 
 
+def login_required(func):
+    @wraps(func)
+    def login_wrapper(*args, **kwargs):
+        if not session.get("user"):
+            return redirect(url_for("login"))
+        return func(*args, **kwargs)
+    return login_wrapper
+
+
+def admin_required(func):
+    @wraps(func)
+    def login_wrapper(*args, **kwargs):
+        if not session.get("user"):
+            if not session["user"]["name"] == "Коротеев Михаил Викторович":
+                return redirect(url_for("login"))
+        return func(*args, **kwargs)
+    return login_wrapper
+
+
 @app.route("/")
+@login_required
 def index():
-    if not session.get("user"):
-        return redirect(url_for("login"))
     vms = get_list()
+    print(session)
     return render_template('vm_list.html',
                            vms=vms, vm_user=user, hostname=hostname,
                            user=session["user"])
 
 
 @app.route('/launch/<string:id>')
+@login_required
 def launch(id):
     port = 22003
 
@@ -165,6 +187,7 @@ def launch(id):
 
 
 @app.route('/stop/<string:id>')
+@login_required
 def stop(id):
     subprocess.check_output(f'vboxmanage controlvm {id} poweroff', shell=True)
     try:
@@ -175,6 +198,7 @@ def stop(id):
 
 
 @app.route('/create_vm/', methods=['POST', 'GET'])
+@login_required
 def create_vm():
     if request.method == 'POST':
         # print(dict(request.form))
@@ -196,6 +220,7 @@ def create_vm():
 
 
 @app.route('/delete/<string:id>')
+@login_required
 def delete(id):
     subprocess.check_output(f'vboxmanage unregistervm {id} --delete', shell=True)
     return redirect('/')
