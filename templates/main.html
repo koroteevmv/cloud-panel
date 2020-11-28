@@ -84,7 +84,14 @@
     <div class="col-sm align-middle">
        <h2 class="m-0 align-middle"><a href="/" class="badge badge-success" id="running">0</a></h2>
     </div>
-</div></div>
+
+
+    <span class="form-inline my-2 my-lg-0">
+        {% if (user) %}
+        <span class="navbar-brand"> {{ user.get("name") }} &nbsp; </span>
+        {% endif %}
+        <a href="/logout" class="btn btn-warning my-2 my-sm-0">Выход</a>
+    </div>
 
 </nav>
 

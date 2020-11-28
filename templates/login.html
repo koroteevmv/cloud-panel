@@ -1,0 +1,17 @@
+{% extends "main.html" %}
+{% block content %}
+
+    <h2>Добро пожаловать в частное облако</h2>
+
+    {% if config.get("B2C_RESET_PASSWORD_AUTHORITY") %}
+    <li><a href='{{_build_auth_url(authority=config["B2C_RESET_PASSWORD_AUTHORITY"])}}'>Reset Password</a></li>
+    {% endif %}
+{% endblock %}
+
+{% block bottom_nav %}
+    <a href="{ auth_url }}" class="btn btn-primary">Войти</a>
+
+    <hr>
+    <footer style="text-align: right">Powered by MSAL Python {{ version }}</footer>
+{% endblock %}
+
