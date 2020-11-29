@@ -1,89 +1,25 @@
 import os
 import subprocess
 import uuid
-from datetime import datetime
-from functools import wraps
 from random import randint
 
 import msal
 import requests
-from flask import Flask, render_template, redirect, request, jsonify, flash
-from flask import session, url_for
-from flask_login import (
-    LoginManager,
-    login_user,
-    logout_user, UserMixin, current_user, login_required,
-)
-# from flask_session import Session  # https://pythonhosted.org/Flask-Session
-from flask_sqlalchemy import SQLAlchemy
-from werkzeug.security import generate_password_hash,  check_password_hash
-from wtforms import StringField, SubmitField, TextAreaField,  BooleanField, PasswordField
-from wtforms.validators import DataRequired
-from flask_wtf import FlaskForm
+from flask import render_template, jsonify, redirect, request, url_for, session, flash
+from flask_login import login_required, current_user, logout_user, login_user
 
-import app_config
-
-app = Flask(__name__)
-
-app.config.from_object(app_config)
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///sqlite_db'
-app.config['SECRET_KEY'] = 'a really really really really long secret key'
-
-# Session(app)
-login_manager = LoginManager()
-login_manager.init_app(app)
-login_manager.login_view = 'login'
-db = SQLAlchemy(app)
-
-# from werkzeug.middleware.proxy_fix import ProxyFix
-
-# app.wsgi_app = ProxyFix(app.wsgi_app, x_proto=1, x_host=1)
-
-image_folder = './images/'
-low_port = 40000
-high_port = 50000
-user = 'user'
-hostname = '77.37.204.9'
+import config
+from app import app, get_list, _load_cache, _build_msal_app, _save_cache, _build_auth_url, \
+    _get_token_from_cache, db, login_manager
+from app.forms import LoginForm
+from app.models import User
+from config import user, hostname, image_folder, high_port, low_port
 
 
-########################################################################################################################
 
 @login_manager.user_loader
 def load_user(user_id):
     return db.session.query(User).get(user_id)
-
-class User(db.Model, UserMixin):
-    __tablename__ = 'users'
-    id = db.Column(db.Integer(), primary_key=True)
-    username = db.Column(db.String(50), nullable=False, unique=True)
-    email = db.Column(db.String(100), nullable=False, unique=True)
-    login_way = db.Column(db.String(100), nullable=False)
-    password_hash = db.Column(db.String(100), nullable=True)
-    created_on = db.Column(db.DateTime(), default=datetime.utcnow)
-    updated_on = db.Column(db.DateTime(), default=datetime.utcnow, onupdate=datetime.utcnow)
-
-    def __repr__(self):
-        return "<{}:{}>".format(self.id, self.username)
-
-    def set_password(self, password):
-        self.password_hash = generate_password_hash(password)
-
-    def check_password(self, password):
-        # print(self.password_hash, password)
-        return check_password_hash(self.password_hash, password)
-
-
-db.create_all()
-
-
-class LoginForm(FlaskForm):
-    username = StringField("Username", validators=[DataRequired()])
-    password = PasswordField("Password", validators=[DataRequired()])
-    remember = BooleanField("Remember Me")
-    submit = SubmitField()
-
-
-########################################################################################################################
 
 
 @app.route("/login")
@@ -91,7 +27,7 @@ def login():
     session["state"] = str(uuid.uuid4())
     # Technically we could use empty list [] as scopes to do just sign in,
     # here we choose to also collect end user consent upfront
-    auth_url = _build_auth_url(scopes=app_config.SCOPE, state=session["state"])
+    auth_url = _build_auth_url(scopes=config.SCOPE, state=session["state"])
     return render_template("login.html", auth_url=auth_url, version=msal.__version__)
 
 
@@ -111,7 +47,7 @@ def login_passwd():
     return render_template('login_passwd.html', form=form)
 
 
-@app.route(app_config.REDIRECT_PATH)  # Its absolute URL must match your app's redirect_uri set in AAD
+@app.route(config.REDIRECT_PATH)  # Its absolute URL must match your app's redirect_uri set in AAD
 def authorized():
     if request.args.get('state') != session.get("state"):
         return redirect(url_for("index"))  # No-OP. Goes back to Index page
@@ -121,7 +57,7 @@ def authorized():
         cache = _load_cache()
         result = _build_msal_app(cache=cache).acquire_token_by_authorization_code(
             request.args['code'],
-            scopes=app_config.SCOPE,  # Misspelled scope would cause an HTTP 400 error here
+            scopes=config.SCOPE,  # Misspelled scope would cause an HTTP 400 error here
             redirect_uri=url_for("authorized", _external=True))
         if "error" in result:
             return render_template("auth_error.html", result=result)
@@ -167,97 +103,14 @@ def logout():
 
 @app.route("/graphcall")
 def graphcall():
-    token = _get_token_from_cache(app_config.SCOPE)
+    token = _get_token_from_cache(config.SCOPE)
     if not token:
         return redirect(url_for("login"))
     graph_data = requests.get(  # Use token to call downstream service
-        app_config.ENDPOINT,
+        config.ENDPOINT,
         headers={'Authorization': 'Bearer ' + token['access_token']},
     ).json()
     return render_template('display.html', result=graph_data)
-
-
-def _load_cache():
-    cache = msal.SerializableTokenCache()
-    if session.get("token_cache"):
-        cache.deserialize(session["token_cache"])
-    return cache
-
-
-def _save_cache(cache):
-    if cache.has_state_changed:
-        session["token_cache"] = cache.serialize()
-
-
-def _build_msal_app(cache=None, authority=None):
-    return msal.ConfidentialClientApplication(
-        app_config.CLIENT_ID, authority=authority or app_config.AUTHORITY,
-        client_credential=app_config.CLIENT_SECRET, token_cache=cache)
-
-
-def _build_auth_url(authority=None, scopes=None, state=None):
-    return _build_msal_app(authority=authority).get_authorization_request_url(
-        scopes or [],
-        state=state or str(uuid.uuid4()),
-        redirect_uri=url_for("authorized", _external=True))
-
-
-def _get_token_from_cache(scope=None):
-    cache = _load_cache()  # This web app maintains one cache per session
-    cca = _build_msal_app(cache=cache)
-    accounts = cca.get_accounts()
-    if accounts:  # So all account(s) belong to the current signed-in user
-        result = cca.acquire_token_silent(scope, account=accounts[0])
-        _save_cache(cache)
-        return result
-
-
-app.jinja_env.globals.update(_build_auth_url=_build_auth_url)  # Used in template
-
-
-########################################################################################################################
-
-
-def get_list():
-    vms = subprocess.check_output('vboxmanage list vms', shell=True).decode('utf-8').split('\n')[:-1]
-    vms = [tuple(vm.split(' ')) for vm in vms]
-    vms = [{'name': name[1:-1],
-            'id': id[1:-1]} for (name, id) in vms]
-
-    running_vms = subprocess.check_output('vboxmanage list runningvms | cut -d " " -f 2', shell=True).decode(
-        'utf-8').split('\n')[:-1]
-    running_vms = [x[1:-1] for x in running_vms]
-
-    for vm in vms:
-        stream = os.popen(f'VBoxManage showvminfo {vm["id"]}')
-        vm["desc"] = stream.read().replace('\n', '<br> \n')
-        vm["running"] = vm['id'] in running_vms
-
-        stream = os.popen(f'VBoxManage showvminfo {vm["id"]} | grep Rule | cut -d "=" -f 5')
-        vm["port"] = stream.read().split(', ')[0][1:]
-
-    return vms
-
-
-# def login_required(func):
-#     @wraps(func)
-#     def login_wrapper(*args, **kwargs):
-#         if not session.get("user"):
-#             return redirect(url_for("login"))
-#         return func(*args, **kwargs)
-#
-#     return login_wrapper
-
-
-def admin_required(func):
-    @wraps(func)
-    def login_wrapper(*args, **kwargs):
-        if not session.get("user"):
-            if not session["user"]["name"] == "Коротеев Михаил Викторович":
-                return redirect(url_for("login"))
-        return func(*args, **kwargs)
-
-    return login_wrapper
 
 
 @app.route("/")
@@ -272,6 +125,7 @@ def index():
 @app.route('/launch/<string:id>')
 @login_required
 def launch(id):
+    # TODO проверить, принадлежит ли данная машина текущему пользователю
     port = 22003
 
     vms = get_list()
@@ -295,6 +149,7 @@ def launch(id):
 @app.route('/stop/<string:id>')
 @login_required
 def stop(id):
+    # TODO проверить, принадлежит ли данная машина текущему пользователю
     subprocess.check_output(f'vboxmanage controlvm {id} poweroff', shell=True)
     try:
         subprocess.check_output(f'vboxmanage modifyvm {id} --natpf1 delete ssh-forwarding', shell=True)
@@ -312,6 +167,7 @@ def create_vm():
         filename = os.path.abspath(os.path.join(image_folder, request.form["image"]))
         subprocess.check_output(f'vboxmanage import {filename} --vsys 0 --vmname {request.form["name"]}', shell=True)
         subprocess.check_output(f'vboxmanage modifyvm {request.form["name"]} --nic1 nat', shell=True)
+        # TODO добавить запись о машине в БД
 
         return redirect('/')
 
@@ -328,7 +184,9 @@ def create_vm():
 @app.route('/delete/<string:id>')
 @login_required
 def delete(id):
+    # TODO проверить, принадлежит ли данная машина текущему пользователю
     subprocess.check_output(f'vboxmanage unregistervm {id} --delete', shell=True)
+    # TODO удалить запись о машине из БД
     return redirect('/')
 
 
@@ -344,6 +202,3 @@ def monitor():
                    disk_per=disk_per
                    )
 
-
-if __name__ == '__main__':
-    app.run(host='0.0.0.0', debug=False)

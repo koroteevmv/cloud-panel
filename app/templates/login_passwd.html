@@ -2,7 +2,7 @@
 {% block content %}
 
     {% for category, message in  get_flashed_messages(with_categories=true) %}
-	<spam class="{{ category }}">{{ message }}</spam>
+	<span class="{{ category }}">{{ message }}</span>
     {% endfor %}
 
     <form action="" method="post">
