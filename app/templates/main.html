@@ -84,8 +84,15 @@
     <div class="col-sm align-middle">
        <h2 class="m-0 align-middle"><a href="/" class="badge badge-success" id="running">0</a></h2>
     </div>
-</div></div>
 
+
+    <div class="form-inline my-2 my-lg-0">
+        {% if (current_user.is_authenticated) %}
+        <span class="navbar-brand"> {{ current_user.username }} &nbsp; </span>
+        <a href="/logout" class="btn btn-warning my-2 my-sm-0">Выход</a>
+        {% endif %}
+    </div>
+    </div></div>
 </nav>
 
 
@@ -108,55 +115,55 @@
 </div>
 
 
-<script>
-    let mem_pg = document.getElementById("mem_pb");
-    let cpu_pg = document.getElementById("cpu_pb");
-    let disk_pg = document.getElementById("disk_pb");
-    let running = document.getElementById("running");
-
-    function get_params() {
-        fetch('/monitor/')
-            .then((response) => {
-                return response.json();
-            })
-            .then((data) => {
-                console.log(data);
-
-                mem_pg.style.width = Math.max(20, data['mem_per']) + '%'    ;
-                mem_pg.innerText = "RAM: " + data['mem_per'] + '%';
-                if (data['mem_per'] > 90)
-                    mem_pg.className = "progress-bar bg-danger";
-                else if (data['mem_per'] > 50)
-                    mem_pg.className = "progress-bar bg-warning";
-                else if (data['mem_per'] <= 50)
-                    mem_pg.className = "progress-bar bg-success";
-
-                disk_pg.style.width = Math.max(20, data['disk_per']) + '%';
-                disk_pg.innerText = "Disk: " + data['disk_per'] + '%';
-                if (data['disk_per'] > 90)
-                    disk_pg.className = "progress-bar bg-danger";
-                else if (data['disk_per'] > 50)
-                    disk_pg.className = "progress-bar bg-warning";
-                else if (data['disk_per'] <= 50)
-                    disk_pg.className = "progress-bar bg-success";
-
-                cpu_pg.style.width = Math.max(20, data['cpu']) + '%';
-                cpu_pg.innerText = "CPU: " + data['cpu'] + '%';
-                if (data['cpu'] > 90)
-                    cpu_pg.className = "progress-bar bg-danger";
-                else if (data['cpu'] > 50)
-                    cpu_pg.className = "progress-bar bg-warning";
-                else if (data['cpu'] <= 50)
-                    cpu_pg.className = "progress-bar bg-success";
-
-                running.innerText = data['running'];
-            });
-    }
-
-    get_params();
-    setInterval(get_params, 2000);
-
-</script>
+{#<script>#}
+{#    let mem_pg = document.getElementById("mem_pb");#}
+{#    let cpu_pg = document.getElementById("cpu_pb");#}
+{#    let disk_pg = document.getElementById("disk_pb");#}
+{#    let running = document.getElementById("running");#}
+{##}
+{#    function get_params() {#}
+{#        fetch('/monitor/')#}
+{#            .then((response) => {#}
+{#                return response.json();#}
+{#            })#}
+{#            .then((data) => {#}
+{#                console.log(data);#}
+{##}
+{#                mem_pg.style.width = Math.max(20, data['mem_per']) + '%'    ;#}
+{#                mem_pg.innerText = "RAM: " + data['mem_per'] + '%';#}
+{#                if (data['mem_per'] > 90)#}
+{#                    mem_pg.className = "progress-bar bg-danger";#}
+{#                else if (data['mem_per'] > 50)#}
+{#                    mem_pg.className = "progress-bar bg-warning";#}
+{#                else if (data['mem_per'] <= 50)#}
+{#                    mem_pg.className = "progress-bar bg-success";#}
+{##}
+{#                disk_pg.style.width = Math.max(20, data['disk_per']) + '%';#}
+{#                disk_pg.innerText = "Disk: " + data['disk_per'] + '%';#}
+{#                if (data['disk_per'] > 90)#}
+{#                    disk_pg.className = "progress-bar bg-danger";#}
+{#                else if (data['disk_per'] > 50)#}
+{#                    disk_pg.className = "progress-bar bg-warning";#}
+{#                else if (data['disk_per'] <= 50)#}
+{#                    disk_pg.className = "progress-bar bg-success";#}
+{##}
+{#                cpu_pg.style.width = Math.max(20, data['cpu']) + '%';#}
+{#                cpu_pg.innerText = "CPU: " + data['cpu'] + '%';#}
+{#                if (data['cpu'] > 90)#}
+{#                    cpu_pg.className = "progress-bar bg-danger";#}
+{#                else if (data['cpu'] > 50)#}
+{#                    cpu_pg.className = "progress-bar bg-warning";#}
+{#                else if (data['cpu'] <= 50)#}
+{#                    cpu_pg.className = "progress-bar bg-success";#}
+{##}
+{#                running.innerText = data['running'];#}
+{#            });#}
+{#    }#}
+{##}
+{#    get_params();#}
+{#    setInterval(get_params, 2000);#}
+{##}
+{#</script>#}
 
 </body>
 </html>
