@@ -12,3 +12,4 @@ Flask-WTF
 requests>=2.25.0,<3
 msal>=1.6.0,<2
 wtforms
+pyopenssl

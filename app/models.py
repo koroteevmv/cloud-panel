@@ -23,7 +23,10 @@ class User(db.Model, UserMixin):
         self.password_hash = generate_password_hash(password)
 
     def check_password(self, password):
-        # print(self.password_hash, password)
+        if not self.password_hash:
+            print(self.password_hash, generate_password_hash(password), password)
+            return False
+        print(self.password_hash, generate_password_hash(password), password)
         return check_password_hash(self.password_hash, password)
 
 # TODO добавить таблицы образов и машин

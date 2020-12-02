@@ -40,7 +40,7 @@ def login_passwd():
         if user and user.check_password(form.password.data):
             login_user(user, remember=form.remember.data)
             return redirect(url_for('index'))
-
+        # print(form.password.data, user.password_hash)
         flash("Неправильный логин/пароль", 'error')
         return redirect(url_for('login_passwd'))
 
