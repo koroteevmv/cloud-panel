@@ -13,8 +13,10 @@ SESSION_TYPE = "filesystem"  # Specifies the token cache should be stored in ser
 SQLALCHEMY_DATABASE_URI = 'sqlite:///sqlite_db'
 SECRET_KEY = 'a really really really really long secret key'
 
+ADMIN_NAME = 'admin'
+
 image_folder = './images/'
 low_port = 40000
 high_port = 50000
-user = 'user'
-hostname = '77.37.204.9'
+DEFAULT_USERNAME = 'user'
+HOSTNAME = '77.37.204.9'
