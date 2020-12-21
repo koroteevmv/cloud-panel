@@ -134,6 +134,7 @@ def get_images():
 
 
 def add_vm_to_db(image, name, user, id_string):
+    print(image, name, user, id_string)
     machine = Machine(
         name=name,
         id_string=id_string,

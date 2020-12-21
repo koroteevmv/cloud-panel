@@ -1,10 +1,12 @@
-from app import db, app
+from app import db, app, get_images, get_machines
 from app.models import Machine, Image, User
 from config import ADMIN_NAME
 import logging
 
 def rescan_db():
     db.create_all()
+    get_images()
+    # get_machines()
     logging.warning("Created new DB fixture")
     if not db.session.query(User).filter(User.username == ADMIN_NAME).first():
         admin = User(
