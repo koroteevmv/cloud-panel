@@ -1,5 +1,6 @@
 import os
 import subprocess
+import time
 import uuid
 import logging
 from random import randint
@@ -11,7 +12,7 @@ from flask_login import login_required, current_user, logout_user, login_user
 
 import config
 from app import app, get_machines, _load_cache, _build_msal_app, _save_cache, _build_auth_url, \
-    _get_token_from_cache, db, login_manager, admin_required, get_images, add_vm_to_db, is_owned
+    _get_token_from_cache, db, login_manager, admin_required, get_images, add_vm_to_db, is_owned, delete_machine
 from app.forms import LoginForm
 from app.models import User
 from config import DEFAULT_USERNAME, HOSTNAME, image_folder, high_port, low_port
@@ -203,7 +204,8 @@ def delete(id):
     if not is_owned(vm_id=id, username=current_user.username):
         return redirect("/")
     subprocess.check_output(f'vboxmanage unregistervm {id} --delete', shell=True)
-    # TODO удалить запись о машине из БД
+    delete_machine(vm_id=id)
+    time.sleep(4.0)
     return redirect('/')
 
 

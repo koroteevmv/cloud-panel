@@ -97,7 +97,7 @@ def get_machines(user):
         else:
             vm['username'] = config.DEFAULT_USERNAME
 
-        # print(vm)
+    # TODO пройтись по всем машинам в БД и удалить лишние.
     if user != config.ADMIN_NAME:
         vms = [vm for vm in vms if vm['owner'] == db.session.query(User).filter(User.username == user).first().username]
 
@@ -112,6 +112,12 @@ def is_owned(vm_id, username):
     real_owner = db.session.query(User).filter(User.id == real_owner).first().username
     logger.info(f"Ownership check. User - {username}, real owner - {real_owner}")
     return username == real_owner
+
+
+def delete_machine(vm_id):
+    db_machine = db.session.query(Machine).filter(Machine.id_string == vm_id).first()
+    db.session.delete(db_machine)
+    db.session.commit()
 
 
 def get_images():
