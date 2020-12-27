@@ -1,7 +1,7 @@
 {% extends "main.html" %}
 {% block content %}
 
-{#    <h4>Добро пожаловть, {{ current_user.username }}!</h4>#}
+{#    <h4>Добро пожаловть, {{ current_user.fullname }}!</h4>#}
     <h2>Список виртуальных машин</h2>
 
     <table class="table table-striped table-bordered table-sm table-hover">
@@ -22,19 +22,19 @@
                 <td class="align-middle">
                     {% if vm.running %}
                         <button onclick="copyToClipBoard('ssh -p {{ vm.port }} {{ vm.username }}@{{ hostname }}')">Copy</button>
-                        <span id="{{ vm.id }}_connection_string">
+                        <span id="{{ vm.id_string }}_connection_string">
                             ssh -p {{ vm.port }} {{ vm.username }}@{{ hostname }}
                         </span>
                     {% endif %}
                 </td>
-                <td class="align-middle">{{ vm.owner }}</td>
+                <td class="align-middle">{{ vm.fullname }}</td>
                 <td class="align-middle">
                     {% if vm.running %}
-                        <a class="btn btn-warning" href="/stop/{{ vm.id }}"> Остановить </a>
+                        <a class="btn btn-warning" href="/stop/{{ vm.id_string }}"> Остановить </a>
                     {% else %}
-                        <a class="btn btn-success" href="/launch/{{ vm.id }}"> Запустить </a>
+                        <a class="btn btn-success" href="/launch/{{ vm.id_string }}"> Запустить </a>
                     {% endif %}
-                    <a class="btn btn-danger" href="/delete/{{ vm.id }}"> Удалить </a>
+                    <a class="btn btn-danger" href="/delete/{{ vm.id_string }}"> Удалить </a>
                 </td>
             </tr>
         {% endfor %}

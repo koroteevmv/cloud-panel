@@ -65,7 +65,7 @@
 
     <div class="form-inline my-2 my-lg-0">
         {% if (current_user.is_authenticated) %}
-        <span class="navbar-brand"> {{ current_user.username }} &nbsp; </span>
+        <span class="navbar-brand"> {{ current_user.fullname }} &nbsp; </span>
         <a href="/logout" class="btn btn-warning my-2 my-sm-0">Выход</a>
         {% endif %}
     </div>

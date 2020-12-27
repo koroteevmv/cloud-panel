@@ -1,21 +1,24 @@
-from app import db, app, get_images, get_machines
-from app.models import Machine, Image, User
+from threading import Lock
+
+from app import db, app, logger
+from app.controller import get_images, rescan_machines
+from app.models import User
 from config import ADMIN_NAME
 import logging
 
 def rescan_db():
     db.create_all()
-    get_images()
-    # get_machines()
-    logging.warning("Created new DB fixture")
-    if not db.session.query(User).filter(User.username == ADMIN_NAME).first():
+    if not db.session.query(User).filter(User.fullname == ADMIN_NAME).first():
         admin = User(
-            username=ADMIN_NAME,
+            fullname=ADMIN_NAME,
             email='koroteevmv@gmail.com',
             login_way='passwd',
             password_hash='pbkdf2:sha256:150000$BgkwVsF1$deb03f980b8d063888d4e7aa5af08333b8fbbbd6b159c5f8acf46f4c4e50594d'
         )
         db.session.add(admin)
+
+    get_images()
+    rescan_machines()
     db.session.commit()
     logging.info("Created new DB fixture")
 

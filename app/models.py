@@ -12,7 +12,7 @@ db = SQLAlchemy(app)
 class User(db.Model, UserMixin):
     __tablename__ = 'users'
     id = db.Column(db.Integer(), primary_key=True)
-    username = db.Column(db.String(100), nullable=False, unique=True)
+    fullname = db.Column(db.String(100), nullable=False, unique=True)
     email = db.Column(db.String(100), nullable=False)
     login_way = db.Column(db.String(20), nullable=False)
     password_hash = db.Column(db.String(100), nullable=True)
@@ -21,7 +21,7 @@ class User(db.Model, UserMixin):
     machines = db.relationship('Machine', backref='users', lazy=True)
 
     def __repr__(self):
-        return "<{}:{}>".format(self.id, self.username)
+        return "<{}:{}>".format(self.id, self.fullname)
 
     def set_password(self, password):
         self.password_hash = generate_password_hash(password)
@@ -55,6 +55,9 @@ class Machine(db.Model):
     id_string = db.Column(db.String(1000), nullable=False)
     owner_id = db.Column(db.Integer, db.ForeignKey('users.id'), nullable=False)
     image_id = db.Column(db.Integer, db.ForeignKey('images.id'), nullable=True)
+    port = db.Column(db.Integer, nullable=True)
+    running = db.Column(db.Boolean)
+    username = db.Column(db.String(100), nullable=False)
 
     def __repr__(self):
         return f"{self.name}"
