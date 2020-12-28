@@ -28,6 +28,7 @@ def index():
 @app.route("/settings/")
 @admin_required
 def settings():
+    # TODO проверить, в новой версии настройки не заргужаются, выдают ошибку
     images = get_images()
     # TODO загрузка и скачивание образа
     return render_template('settings.html', images=images)
@@ -78,7 +79,7 @@ def create_vm():
         name = request.form["name"]
         user = current_user.fullname
 
-        logger.warning(f"User <{user}> has issued a request top create a vm named <{name}>")
+        logger.info(f"User <{user}> has issued a request to create a vm named <{name}>")
 
         if not is_unique(name):
             logger.warning(f"Error creating vm named {name}. The name is not unique")
@@ -87,14 +88,14 @@ def create_vm():
         filename = os.path.abspath(os.path.join(image_folder, request.form["image"]))
         try:
             subprocess.check_output(f'vboxmanage import {filename} --vsys 0 --vmname {request.form["name"]}', shell=True)
-            logger.info(f"Imported vm named <{name}> by <{user}>.")
+            logger.debug(f"Imported vm named <{name}> by <{user}>.")
         except:
             logger.error(f"Error importing vm named <{name}> by <{user}>.")
             return redirect("/create_vm/")
 
         try:
             subprocess.check_output(f'vboxmanage modifyvm {request.form["name"]} --nic1 nat', shell=True)
-            logger.info(f"Setted up NAT vm named <{name}> by <{user}>.")
+            logger.debug(f"Setted up NAT vm named <{name}> by <{user}>.")
         except:
             logger.error(f"Error modyfying vm named <{name}> by <{user}>. Error setting network adapter to NAT")
             return redirect("/create_vm/")
@@ -128,7 +129,7 @@ def create_vm():
             logger.error(f"Error ssh forwarding for vm named <{name}> created by <{user}>")
             return redirect("/")
 
-        logger.debug(f"New VM named <{name}> created successfully by <{user}>")
+        logger.info(f"New VM named <{name}> created successfully by <{user}>")
 
         machine = Machine(
             name=request.form["name"],
@@ -163,7 +164,7 @@ def delete(id):
     except:
         logger.error(f"Error deleting vm id <{id}> by <{current_user.fullname}>")
 
-    logger.warning(f"Deleted vm id <{id}> by <{current_user.fullname}>")
+    logger.info(f"Deleted vm id <{id}> by <{current_user.fullname}>")
     delete_machine(vm_id=id)
     time.sleep(4.0)
     return redirect('/')
@@ -240,11 +241,11 @@ def authorized():
         db.session.add(user)
         db.session.commit()
         user_from_db = db.session.query(User).filter(User.fullname == users_name).first()
-        logger.warning(f"New user login via MSFT attempt: {session['user']}")
+        logger.info(f"New user login via MSFT attempt: {session['user']['name']}")
     elif user_from_db.login_way == 'msft':
-        logger.info(f"User login via MSFT attempt: {session['user']}")
+        logger.debug(f"User login via MSFT attempt: {session['user']['name']}")
     else:
-        logger.warning(f"User login via MSFT attempt: {session['user']}. This is it's first login via MSFT")
+        logger.debug(f"User login via MSFT attempt: {session['user']['name']}. This is it's first login via MSFT")
     login_user(user_from_db, remember=True)
     return redirect(request.args.get('next') or url_for("index"))
 

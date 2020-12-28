@@ -43,7 +43,7 @@ def rescan_machines():
     for vm in vms:
         db_vm = db.session.query(Machine).filter(Machine.id_string == vm['id']).first()
         if not db_vm:
-            logger.warning(f"During rescan new vm was found with name <{vm['name']}> and id <{vm['id']}>.")
+            logger.info(f"During rescan new vm was found with name <{vm['name']}> and id <{vm['id']}>.")
             db_vm = Machine(
                 name=vm['name'],
                 id_string=vm['id'],
@@ -61,7 +61,7 @@ def rescan_machines():
             try:
                 subprocess.check_output(f'vboxmanage controlvm {vm["id"]} poweroff', shell=True)
             except:
-                logger.error(f"Error stopping new vm id <{vm['id']}>.")
+                logger.debug(f"Error stopping new vm id <{vm['id']}>.")
 
             try:
                 subprocess.check_output(f'vboxmanage modifyvm {vm["id"]} --natpf1 delete ssh-forwarding', shell=True)
