@@ -34,9 +34,11 @@ def get_machines(user):
 def rescan_machines():
     logger.debug("Rescan started")
     vms = subprocess.check_output('vboxmanage list vms', shell=True).decode('utf-8').split('\n')[:-1]
+    logger.debug("VM list aquired")
     vms = [tuple(vm.split(' ')) for vm in vms]
     vms = [{'name': name[1:-1],
             'id': id[1:-1]} for (name, id) in vms]
+    logger.debug(f"vms found: {vms}")
 
     for vm in vms:
         db_vm = db.session.query(Machine).filter(Machine.id_string == vm['id']).first()
