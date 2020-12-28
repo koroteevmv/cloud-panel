@@ -37,6 +37,7 @@ def settings():
 @app.route('/launch/<string:id>')
 @login_required
 def launch(id):
+    # TODO добавить балансировку нагрузки. Несколько виртуалок, запускающихся одновременно тормозят сервер.
     if not is_owned(vm_id=id, username=current_user.fullname):
         logger.warning(f"User <{current_user.fullname}> tried to launch someone's vm id <{id}>")
         return redirect("/")
@@ -76,6 +77,8 @@ def stop(id):
 @login_required
 def create_vm():
     if request.method == 'POST':
+        # TODO добавить балансировку нагрузки. Несколько виртуалок, создающихся одновременно тормозят сервер.
+        # TODO добавить спиннер
         name = request.form["name"]
         user = current_user.fullname
 
@@ -173,6 +176,7 @@ def delete(id):
 @app.route('/monitor/')
 @login_required
 def monitor():
+    # TODO добавить логирование нагрузки
     import psutil
     vms = [vm for vm in get_machines(user=current_user.fullname) if vm.running]
     disk_per = psutil.disk_usage("/")[-1]
