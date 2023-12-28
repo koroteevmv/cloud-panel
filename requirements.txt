@@ -7,7 +7,8 @@ psutil==5.7.3
 Werkzeug==1.0.1
 flask-session~=0.3.2
 Flask-Login==0.5.0
-Flask-Sqlalchemy
+Sqlalchemy==1.4
+Flask-Sqlalchemy==2.5.1
 Flask-WTF
 requests>=2.25.0,<3
 msal>=1.6.0,<2
