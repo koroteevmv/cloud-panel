@@ -8,10 +8,13 @@ A simple Python-based VirtualBox Orchestration system
 ```bash
 git clone git@github.com:koroteevmv/cloud-panel.git
 cd cloud-panel/
+apt install gcc python3-dev python3-venv virtualbox
 python3 -m venv venv-panel
 source venv-allocation/bin/activate
+pip install wheel
 pip install -r requirements.txt
-python app.py
+export MSFT_AUTH_CLIENT_SECRET=''
+python runner.py
 ```
 
 ## Usage \ Применение
